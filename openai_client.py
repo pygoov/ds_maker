@@ -37,5 +37,5 @@ class OpenAIClient:
             }
         ) as rsp:
             data = await rsp.json()
-
+            print(data)
         return data["choices"][0]["text"]
