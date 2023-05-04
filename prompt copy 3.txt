@@ -1,0 +1,16 @@
+The task is to rephrase the text strings included in the dataset for training the neural network classifier.
+
+Description of instructions:
+[class] - description of the class to which the offer belongs
+[line] - original sentence
+[result] - the second sentence, equal in meaning to the first, but differing in content and structure.
+
+Перефразирование:
+
+[class]: получение паспорта
+[line]: как получить паспорт?
+[result]: я потерял паспорт, что мне делать?
+
+[class]: <CLASS>
+[line]: <TEXT>
+[result]:
