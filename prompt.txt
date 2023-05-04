@@ -1,8 +1,9 @@
-Задача - перефранирование текстовых строк, входящих в датасета для обучения классификатора нейронной сети. 
-Описание инструкций:
-[class] - класс к которому относится предложение
-[line] - само исходное предложение
-[result] - второе предложение, равное по смыслу первому, но отлечающееся по содержанию и структуре.
+The task is to rephrase the text strings included in the dataset for training the neural network classifier.
+
+Description of instructions:
+[class] - description of the class to which the offer belongs
+[line] - original sentence
+[result] - the second sentence, equal in meaning to the first, but differing in content and structure.
 
 Перефразирование:
 

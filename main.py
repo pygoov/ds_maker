@@ -25,8 +25,8 @@ async def make_new_line(class_line: str, text_line: str) -> str:
     )
     result = await oai_client.completions(
         prompt=p,
-        temperature=1.2,
-        presence_penalty=0.5,
+        temperature=0.8,
+        presence_penalty=1,
         max_tokens=500,
         stop="\n"
     )
@@ -49,8 +49,8 @@ async def message_handler(message: types.Message):
             "Во второй строке, пример вопроса который яперефразурую.\n\n"
             "пример сообщений:\n"
             "```\n"
-            "получение паспорта\n"
-            "как получить паспорт?\n"
+            "льготный возраст ребёнка, для заселения без платы\n"
+            "сколько лет ребёнку должно быть, чтобы нас бесплатно заселили?\n"
             "```"
         )
         return
