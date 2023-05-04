@@ -15,7 +15,7 @@ bot = Bot(token=args.tg_token)
 oai_client = OpenAIClient(args.open_ai_token)
 dp = Dispatcher(bot)
 
-with open("./prompt.txt", "r", encoding="utf-8") as f:
+with open("./prompts/prompt.txt", "r", encoding="utf-8") as f:
     PROMPT = f.read()
 
 HELP_MSG = (
@@ -37,7 +37,7 @@ async def make_new_line(class_line: str,
         PROMPT
         .replace("<CLASS>", class_line)
         .replace("<TEXT>", text_line)
-    )    
+    )
     result = await oai_client.completions(
         prompt=p,
         temperature=temperature,

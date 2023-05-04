@@ -1,6 +1,8 @@
 # ds_maker
-Dataset maker
 
+Проект DatasetMaker для создания датасетов на базе интеграции с OpenAI
+
+Телеграм бот, позваляющий перефразировать ваши предложения чтобы они подходили под определённые фразы.
 
 ## Запуск
 
@@ -8,14 +10,18 @@ Dataset maker
 
 > pip install -r requirements.txt
 
-2. создайте бота в телеграм и получите его токен в [BotFather](https://t.me/BotFather)
+2. запустите скрипт
 
-3. запустите скрипт
+> python3 main.py --tg_token "<TELEGRAM_BOT_TOKEN>" --open_ai_token "<OPEN_AI_TOKEN>"
 
-> python3 main.py <TELEGRAM_BOT_TOKEN> <OPEN_AI_TOKEN>
+или
+
+> python3 main.py -t "<TELEGRAM_BOT_TOKEN>" -o "<OPEN_AI_TOKEN>"  
 
 где:
 
-`TELEGRAM_BOT_TOKEN` - токен полученый из телеграм
+`TELEGRAM_BOT_TOKEN` - токен полученый из телеграм - создайте бота в телеграм и получите его токен в [BotFather](https://t.me/BotFather)
 
 `OPEN_AI_TOKEN` - токен доступа к OpenAI
+
+
