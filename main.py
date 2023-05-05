@@ -1,7 +1,7 @@
 import argparse
 
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ContentType, ParseMode
+from aiogram.types import ContentType
 from typing import List
 
 from openai_client import OpenAIClient
@@ -73,7 +73,7 @@ async def message_handler(message: types.Message):
     print(f'{class_line=}')
     print(f'{text_line=}')
 
-    for temperature in [0.25, 0.75, 1, 1.25]:
+    for temperature in [0.25, 0.5, 0.75]:
         for presence_penalty in [-0.5, 0, 0.5]:
             try:
                 line = (await make_new_line(
