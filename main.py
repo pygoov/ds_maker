@@ -1,11 +1,11 @@
 import argparse
-
-import keyboards as kb
+import io
 
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ContentType, ParseMode
+from aiogram.types import ContentType, ParseMode, InputFile
 
 from typing import Dict
+from csv_util import write_to_csv
 
 from openai_client import OpenAIClient
 from generator import Generator
@@ -105,8 +105,9 @@ async def bnt_line_yes_handler(query: types.CallbackQuery, user: User):
 
 @dp.callback_query_handler(text="bnt_line_save")
 async def bnt_line_save_handler(query: types.CallbackQuery, user: User):
+    message = query.message
     lines = user.save_lines
-    await query.message.edit_text(
+    await message.edit_text(
         (
             "⚙️ выгрузка данных ⚙️\n"
             f"сохранено строк: {len(lines)}"
@@ -114,11 +115,16 @@ async def bnt_line_save_handler(query: types.CallbackQuery, user: User):
         reply_markup=None
     )
     if not lines:
-        await query.message.answer("невозможно выгрузить 0 строк")
+        await message.answer("невозможно выгрузить 0 строк")
         return
 
-    text = "\n".join(lines)
-    await query.message.answer(f"lines: {text}")
+    await bot.send_document(
+        user.chat_id,
+        document=InputFile(
+            io.StringIO(write_to_csv(lines)),
+            filename='lines.csv'
+        )
+    )
 
 
 if __name__ == '__main__':

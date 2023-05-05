@@ -26,6 +26,10 @@ class User:
         self.clear()
 
     @property
+    def chat_id(self) -> int:
+        return self.user.id
+
+    @property
     def is_empty(self) -> bool:
         return not (
             bool(self.class_line) and
@@ -60,6 +64,7 @@ class User:
             temperature,
             presence_penalty,
         )
+        line = line.strip()
         self.last_line = line
         return line
 
