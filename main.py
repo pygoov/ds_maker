@@ -1,10 +1,16 @@
 import argparse
 
+import keyboards as kb
+
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import ContentType
-from typing import List
+from aiogram.types import ContentType, ParseMode
+
+from typing import Dict
 
 from openai_client import OpenAIClient
+from generator import Generator
+from user import User, UserMiddleware
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--tg_token", help="Telegram token")
@@ -13,10 +19,10 @@ args = parser.parse_args()
 
 bot = Bot(token=args.tg_token)
 oai_client = OpenAIClient(args.open_ai_token)
+generator = Generator(oai_client)
 dp = Dispatcher(bot)
+users: Dict[int, User] = {}
 
-with open("./prompts/prompt.txt", "r", encoding="utf-8") as f:
-    PROMPT = f.read()
 
 HELP_MSG = (
     "Пожалуйста, напишите мне две строки в сообщении.\n"
@@ -28,34 +34,14 @@ HELP_MSG = (
 )
 
 
-async def make_new_line(class_line: str,
-                        text_line: str,
-                        temperature: float,
-                        presence_penalty: float,
-                        n: int) -> List[str]:
-    p = (
-        PROMPT
-        .replace("<CLASS>", class_line)
-        .replace("<TEXT>", text_line)
-    )
-    result = await oai_client.completions(
-        prompt=p,
-        temperature=temperature,
-        presence_penalty=presence_penalty,
-        max_tokens=500,
-        n=n,
-        stop="\n"
-    )
-    return [x["text"] for x in result if "text" in x]
-
-
 @dp.message_handler(commands=['start'])
-async def start_handler(message: types.Message):
+async def start_handler(message: types.Message, user: User):
+    user.clear()
     await message.answer(HELP_MSG)
 
 
 @dp.message_handler(content_types=ContentType.TEXT)
-async def message_handler(message: types.Message):
+async def message_handler(message: types.Message, user: User):
     text = message.text
     sp = text.split("\n")
     if len(sp) != 2:
@@ -69,28 +55,72 @@ async def message_handler(message: types.Message):
         await message.answer(HELP_MSG)
         return
 
-    print(f"run genegate - {message.from_user}")
     print(f'{class_line=}')
     print(f'{text_line=}')
 
-    for temperature in [0.25, 0.5, 0.75]:
-        for presence_penalty in [-0.5, 0, 0.5]:
-            try:
-                line = (await make_new_line(
-                    class_line,
-                    text_line,
-                    temperature,
-                    presence_penalty,
-                    1
-                ))[0]
-                # await message.answer(line)
-                await message.answer(
-                    f'=== [t:{temperature}|p:{presence_penalty}] ===\n{line}'
-                )
-            except Exception as e:
-                print(e)
-            # line = "\n".join(lines)
+    user.class_line = class_line
+    user.text_line = text_line
+
+    await message.answer(
+        "Установлена новая цель для генерации.\n"
+        f"Класс: `{class_line}`\n"
+        f"Пример: `{text_line}`",
+        parse_mode=ParseMode.MARKDOWN
+    )
+    await message.answer(
+        "Начало генерации.\nОцените выданные предложения, а когда, "
+        "накопится достаточное кол-во, наажмите сохранить для "
+        "скачивания excel документа со списком."
+    )
+    msg = await message.answer("генерирую")
+    await user.safe_generate(msg)
+
+
+@dp.callback_query_handler(text="bnt_line_no")
+async def bnt_line_no_handler(query: types.CallbackQuery, user: User):
+    message = query.message
+    if user.is_empty:
+        await message.edit_text(
+            "⚠️ строка устарела, необходимо заного задать цель генерации! ⚠️",
+            reply_markup=None
+        )
+        await message.answer(HELP_MSG)
+        return
+    await user.safe_generate(message)
+
+
+@dp.callback_query_handler(text="bnt_line_yes")
+async def bnt_line_yes_handler(query: types.CallbackQuery, user: User):
+    message = query.message
+    if user.is_empty:
+        await message.edit_text(
+            "⚠️ строка устарела, необходимо заного задать цель генерации! ⚠️",
+            reply_markup=None
+        )
+        await message.answer(HELP_MSG)
+        return
+    user.save_line()
+    await user.safe_generate(message)
+
+
+@dp.callback_query_handler(text="bnt_line_save")
+async def bnt_line_save_handler(query: types.CallbackQuery, user: User):
+    lines = user.save_lines
+    await query.message.edit_text(
+        (
+            "⚙️ выгрузка данных ⚙️\n"
+            f"сохранено строк: {len(lines)}"
+        ),
+        reply_markup=None
+    )
+    if not lines:
+        await query.message.answer("невозможно выгрузить 0 строк")
+        return
+
+    text = "\n".join(lines)
+    await query.message.answer(f"lines: {text}")
 
 
 if __name__ == '__main__':
+    dp.middleware.setup(UserMiddleware(users, generator))
     executor.start_polling(dp, skip_updates=True)
