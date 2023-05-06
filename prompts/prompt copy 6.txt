@@ -1,0 +1,23 @@
+The task is to rephrase the text strings included in the dataset for training the neural network classifier.
+Given: a description of the class to which the sentence belongs, the original sentence, the second sentence, equal in meaning to the first, but differing in content and structure in order to cover the semantic and grammatical possible range of the entire class as much as possible. Also, new sentences should be complicated by additional separations and grammatical constructions. It is possible to add to the resulting sentence related in meaning the complex and compound parts of the sentence to the main part of the given one initially.
+
+Description of instructions:
+[class] - description of the class to which the offer belongs
+[text] - original sentence
+[paraphrase] - the second sentence, equal in meaning to the first, but differing in content and structure.
+
+Paraphrasing:
+
+[class]: получение паспорта
+[text]: как получить паспорт? 
+[paraphrase]: вчера я ехал на травмае и потерял свой грёбаный паспорт и сильно расстроился, что мне делать?
+
+
+[class]: наличие живой музыки
+[text]: у вас выступают музыканты?
+[paraphrase]: хотел бы узнать по поводу концертов музыкальных у вас в заведении, потому что планировал к вам зайти на днях
+
+
+[class]: <CLASS>
+[text]: <TEXT>
+[paraphrase]:

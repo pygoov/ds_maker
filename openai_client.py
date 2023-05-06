@@ -14,17 +14,6 @@ class OpenAIClient:
         keargs["headers"] = headers
         return aiohttp.request(*args, **keargs)
 
-    async def get_balance(self) -> dict:
-        async with self._request(
-            "GET", "https://api.openai.com/dashboard/billing/subscription",
-        ) as rsp:
-            if rsp.status != 200:
-                text = await rsp.read()
-                raise Exception(f'request failed[statue={rsp.status}]: {text}')
-            data = await rsp.json()
-            assert isinstance(data, dict)
-            return data
-
     async def completions(self,
                           prompt: str,
                           model: str = "text-davinci-003",
@@ -50,6 +39,34 @@ class OpenAIClient:
             }
         ) as rsp:
             print('completions end')
+            if rsp.status != 200:
+                text = await rsp.read()
+                raise Exception(f'request failed[statue={rsp.status}]: {text}')
+            data = await rsp.json()
+
+        return data["choices"]
+
+    async def edits(self,
+                    input: str,
+                    instruction: str,
+                    model: str = "text-davinci-edit-001",
+                    temperature: float = 0.5,
+                    top_p: float = 1,
+                    n: int = 1
+                    ) -> List[dict]:
+        print('start edits')
+        async with self._request(
+            "POST", "https://api.openai.com/v1/edits",
+            json={
+                "input": input,
+                "instruction": instruction,
+                "model": model,
+                "temperature": temperature,
+                "top_p": top_p,
+                "n": n
+            }
+        ) as rsp:
+            print('edits end')
             if rsp.status != 200:
                 text = await rsp.read()
                 raise Exception(f'request failed[statue={rsp.status}]: {text}')
