@@ -74,7 +74,7 @@ class User:
         try:
             line = await self.make_line()
             line = (
-                f'Страка: `{line}`'
+                f'Строка: `{line}`'
                 f'\n\nсохранено строк: `{len(self.save_lines)}`'
             )
             await message.edit_text(
