@@ -1,3 +1,4 @@
+import asyncio
 import argparse
 import io
 
@@ -129,4 +130,9 @@ async def bnt_line_save_handler(query: types.CallbackQuery, user: User):
 
 if __name__ == '__main__':
     dp.middleware.setup(UserMiddleware(users, generator))
-    executor.start_polling(dp, skip_updates=True)
+    loop = asyncio.get_event_loop()
+    executor.start_polling(
+        dp,
+        loop=loop,
+        skip_updates=True
+    )

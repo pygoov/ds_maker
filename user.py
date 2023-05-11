@@ -1,3 +1,4 @@
+import asyncio
 import random
 import keyboards as kb
 
@@ -6,7 +7,11 @@ from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.types import ParseMode
 from typing import List, Dict, Optional
 
+
 from generator import Generator
+
+
+GENERATION_POOL_SIZE = 4
 
 
 class User:
@@ -14,6 +19,7 @@ class User:
     text_line: Optional[str]
     last_line: Optional[str]
     save_lines: List[str]
+    generation_pool: asyncio.Queue[str]
 
     def __init__(self,
                  user: types.User,
@@ -22,8 +28,11 @@ class User:
         self.user = user
         self.bot = user.bot
         self.generator = generator
+        self.generation_pool = asyncio.Queue()
 
         self.clear()
+
+        self.task = asyncio.create_task(self._main_loop())
 
     @property
     def chat_id(self) -> int:
@@ -51,20 +60,38 @@ class User:
             raise Exception(f"[{self}] last_line is None")
         self.save_lines.append(self.last_line)
 
+    async def _main_loop(self) -> None:
+        print(f"[{self}] start _main_loop")
+        while True:
+            if (
+                (self.generation_pool.qsize() >= GENERATION_POOL_SIZE) or
+                not (self.class_line or self.text_line)
+            ):
+                await asyncio.sleep(1)
+                continue
+
+            if self.class_line is None:
+                raise Exception(f"[{self}] class_line is None")
+            if self.text_line is None:
+                raise Exception(f"[{self}] text_line is None")
+            temperature = 0.25 + (random.random() * 0.5)
+            presence_penalty = random.random() - 0.5
+            try:
+                line = await self.generator.make_new_line(
+                    self.class_line,
+                    self.text_line,
+                    temperature,
+                    presence_penalty,
+                )
+                line = line.strip()
+                self.generation_pool.put_nowait(line)
+            except Exception as e:
+                print(f'error in generation[{type(e)}]: {e}')
+
+            await asyncio.sleep(1)
+
     async def make_line(self) -> str:
-        if self.class_line is None:
-            raise Exception(f"[{self}] class_line is None")
-        if self.text_line is None:
-            raise Exception(f"[{self}] text_line is None")
-        temperature = 0.25 + (random.random() * 0.5)
-        presence_penalty = random.random() - 0.5
-        line = await self.generator.make_new_line(
-            self.class_line,
-            self.text_line,
-            temperature,
-            presence_penalty,
-        )
-        line = line.strip()
+        line = await self.generation_pool.get()
         self.last_line = line
         return line
 
@@ -83,7 +110,9 @@ class User:
             )
         except Exception as e:
             print(f'Error [{type(e)}]{e}')
-            await message.edit_text("⚠️ простите, при генерации чтото пошло не так ⚠️")
+            await message.edit_text(
+                "⚠️ простите, при генерации чтото пошло не так ⚠️"
+            )
 
 
 class UserMiddleware(BaseMiddleware):
