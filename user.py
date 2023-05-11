@@ -1,4 +1,3 @@
-import aiogram
 import random
 import keyboards as kb
 
