@@ -84,7 +84,7 @@ class User:
             )
         except Exception as e:
             print(f'Error [{type(e)}]{e}')
-            await message.edit_text("⚠️ простите, при генераации чтото пошло не так ⚠️")
+            await message.edit_text("⚠️ простите, при генерации чтото пошло не так ⚠️")
 
 
 class UserMiddleware(BaseMiddleware):
